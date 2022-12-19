@@ -4,7 +4,12 @@
 #include "bakkesmod/plugin/pluginwindow.h"
 #include "bakkesmod/plugin/PluginSettingsWindow.h"
 
+#include "nlohmann.hpp"
 #include "GuiBase.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <filesystem>
 
 #include "version.h"
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
@@ -13,11 +18,17 @@ const std::vector<std::string> QuickChats = { "$#@%!", "All yours.", "Bumping!",
 
 class QuickchatDetoxify: public BakkesMod::Plugin::BakkesModPlugin, public SettingsWindowBase {
 	void onLoad() override;
+	void onUnload() override;
 
 	bool BlockMessages = false;
+
+	void JsonFileExists();
+	std::string ReadContent(std::string FileName);
+	void WriteContent(std::string FileName, std::string Buffer);
 
 	std::vector<std::string> MessagesBlacklist;
 	std::vector<std::string> PeopleBlacklist;
 public:
+	void SaveMessages();
 	void RenderSettings() override;
 };

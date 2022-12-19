@@ -107,9 +107,39 @@ std::string Lower(std::string S) {
     return S;
 }
 
+void QuickchatDetoxify::JsonFileExists() {
+    if (!std::filesystem::exists(gameWrapper->GetDataFolder().string() + "/Blacklist.json")) {
+        std::ofstream NewFile(gameWrapper->GetDataFolder().string() + "/Blacklist.json");
+        NewFile << "{\"messages\":[]}";
+        NewFile.close();
+    }
+}
+
+std::string QuickchatDetoxify::ReadContent(std::string FileName) {
+    std::ifstream Temp(FileName);
+    std::stringstream Buffer;
+    Buffer << Temp.rdbuf();
+
+    return (Buffer.str());
+}
+
+void QuickchatDetoxify::WriteContent(std::string FileName, std::string Buffer) {
+    std::ofstream File(FileName, std::ofstream::trunc);
+    File << Buffer;
+    File.close();
+}
+
 void QuickchatDetoxify::onLoad()
 {
 	_globalCvarManager = cvarManager;
+
+    JsonFileExists();
+    auto BlacklistJson = nlohmann::json::parse(ReadContent((gameWrapper->GetDataFolder()).string() + "/Blacklist.json"));
+
+    for (auto& Item : BlacklistJson["messages"].items()) {
+        MessagesBlacklist.push_back(Item.value());
+    }
+
 	gameWrapper->HookEventWithCaller<ActorWrapper>("Function TAGame.GFxData_Chat_TA.OnChatMessage", [this](ActorWrapper Caller, void* params, ...) {
 		ChatMessage* Params = (ChatMessage*)params;
         std::string PlayerName = Params->PlayerName.ToString();
@@ -127,6 +157,19 @@ void QuickchatDetoxify::onLoad()
         }
 
 	});
+}
+
+void QuickchatDetoxify::onUnload()
+{
+    nlohmann::json J;
+    
+    J["messages"] = MessagesBlacklist;
+
+    WriteContent(gameWrapper->GetDataFolder().string() + "/Blacklist.json", J.dump());
+}
+
+void QuickchatDetoxify::SaveMessages() {
+
 }
 
 void QuickchatDetoxify::RenderSettings() {
@@ -158,11 +201,23 @@ void QuickchatDetoxify::RenderSettings() {
 
     if (ImGui::InputText("", &Con)) { }
 
-    if (ImGui::Button("Add", { 115.25, 20 })) { if (Con != "") { MessagesBlacklist.push_back(Con); LOG("Con: {}", Con); } }
+    if (ImGui::Button("Add", { 74.5, 20 })) {
+        if (Con != "") {
+            if (MessagesBlacklist.size() == 0) {
+                MessagesBlacklist.push_back(Con);
+            } else {
+                for (std::string MSG : MessagesBlacklist) {
+                    if (Con != MSG) {
+                        MessagesBlacklist.push_back(Con);
+                    }
+                }
+            }
+        }
+    }
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Remove", {115.25, 20})) {
+    if (ImGui::Button("Remove", { 74.5, 20})) {
         for (int i = 0; i < MessagesBlacklist.size(); i++) {
             if (MessagesBlacklist[i] == Con) {
                 MessagesBlacklist.erase(MessagesBlacklist.begin() + i);
@@ -172,9 +227,13 @@ void QuickchatDetoxify::RenderSettings() {
         }
     }
 
+    ImGui::SameLine();
+
+    if (ImGui::Button("Clear", { 74.5, 20 })) {
+        MessagesBlacklist.clear();
+    }
+
     if (ImGui::Checkbox("Block messages", &BlockMessages)) { }
-
-
 
     static int CurrentQuickChatItem = 0;
 
@@ -212,7 +271,9 @@ void QuickchatDetoxify::RenderSettings() {
 
     ImGui::SetCursorPos({ 250, 345 });
 
-    if (ImGui::Button("Add Quick Chat", { 115.25, 20 })) { if (QuickCon != "") { MessagesBlacklist.push_back(QuickCon); LOG("Con: {}", QuickCon); } }
+    if (ImGui::Button("Add Quick Chat", { 115.25, 20 })) { 
+        MessagesBlacklist.push_back(QuickCon);
+    }
 
     ImGui::SameLine();
 
@@ -225,4 +286,10 @@ void QuickchatDetoxify::RenderSettings() {
             }
         }
     }
+
+    ImVec2 WindowSize = ImGui::GetWindowSize();
+
+    ImGui::SetCursorPos({ WindowSize.x - 125, 20});
+
+    ImGui::Text("Comissioned by Crash\nMade by oofsamy");
 }
