@@ -18,7 +18,6 @@ const std::vector<std::string> QuickChats = { "$#@%!", "All yours.", "Bumping!",
 
 class QuickchatDetoxify: public BakkesMod::Plugin::BakkesModPlugin, public SettingsWindowBase {
 	void onLoad() override;
-	void onUnload() override;
 
 	bool BlockMessages = false;
 

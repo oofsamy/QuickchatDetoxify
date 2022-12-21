@@ -159,17 +159,12 @@ void QuickchatDetoxify::onLoad()
 	});
 }
 
-void QuickchatDetoxify::onUnload()
-{
+void QuickchatDetoxify::SaveMessages() {
     nlohmann::json J;
-    
+
     J["messages"] = MessagesBlacklist;
 
     WriteContent(gameWrapper->GetDataFolder().string() + "/Blacklist.json", J.dump());
-}
-
-void QuickchatDetoxify::SaveMessages() {
-
 }
 
 void QuickchatDetoxify::RenderSettings() {
@@ -206,10 +201,17 @@ void QuickchatDetoxify::RenderSettings() {
             if (MessagesBlacklist.size() == 0) {
                 MessagesBlacklist.push_back(Con);
             } else {
+                bool Flag = false;
+
                 for (std::string MSG : MessagesBlacklist) {
-                    if (Con != MSG) {
-                        MessagesBlacklist.push_back(Con);
+                    if (Con == MSG) {
+                        Flag = true;
                     }
+                }
+
+                if (Flag == false) {
+                    MessagesBlacklist.push_back(Con);
+                    SaveMessages();
                 }
             }
         }
@@ -221,7 +223,7 @@ void QuickchatDetoxify::RenderSettings() {
         for (int i = 0; i < MessagesBlacklist.size(); i++) {
             if (MessagesBlacklist[i] == Con) {
                 MessagesBlacklist.erase(MessagesBlacklist.begin() + i);
-
+                SaveMessages();
                 Con = "";
             }
         }
@@ -231,6 +233,7 @@ void QuickchatDetoxify::RenderSettings() {
 
     if (ImGui::Button("Clear", { 74.5, 20 })) {
         MessagesBlacklist.clear();
+        SaveMessages();
     }
 
     if (ImGui::Checkbox("Block messages", &BlockMessages)) { }
@@ -272,7 +275,24 @@ void QuickchatDetoxify::RenderSettings() {
     ImGui::SetCursorPos({ 250, 345 });
 
     if (ImGui::Button("Add Quick Chat", { 115.25, 20 })) { 
-        MessagesBlacklist.push_back(QuickCon);
+        if (QuickCon != "") {
+            if (MessagesBlacklist.size() == 0) {
+                MessagesBlacklist.push_back(QuickCon);
+            } else {
+                bool Flag = false;
+
+                for (std::string MSG : MessagesBlacklist) {
+                    if (QuickCon == MSG) {
+                        Flag = true;
+                    }
+                }
+
+                if (Flag == false) {
+                    MessagesBlacklist.push_back(QuickCon);
+                    SaveMessages();
+                }
+            }
+        }
     }
 
     ImGui::SameLine();
@@ -281,7 +301,7 @@ void QuickchatDetoxify::RenderSettings() {
         for (int i = 0; i < MessagesBlacklist.size(); i++) {
             if (MessagesBlacklist[i] == QuickCon) {
                 MessagesBlacklist.erase(MessagesBlacklist.begin() + i);
-
+                SaveMessages();
                 QuickCon = "";
             }
         }
