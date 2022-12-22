@@ -110,7 +110,7 @@ std::string Lower(std::string S) {
 void QuickchatDetoxify::JsonFileExists() {
     if (!std::filesystem::exists(gameWrapper->GetDataFolder().string() + "/Blacklist.json")) {
         std::ofstream NewFile(gameWrapper->GetDataFolder().string() + "/Blacklist.json");
-        NewFile << "{\"messages\":[]}";
+        NewFile << "{ \"block_messages\": true, \"messages\":[]}";
         NewFile.close();
     }
 }
@@ -163,6 +163,7 @@ void QuickchatDetoxify::SaveMessages() {
     nlohmann::json J;
 
     J["messages"] = MessagesBlacklist;
+    J["block_messages"] = BlockMessages;
 
     WriteContent(gameWrapper->GetDataFolder().string() + "/Blacklist.json", J.dump());
 }
@@ -236,7 +237,7 @@ void QuickchatDetoxify::RenderSettings() {
         SaveMessages();
     }
 
-    if (ImGui::Checkbox("Block messages", &BlockMessages)) { }
+    if (ImGui::Checkbox("Block messages", &BlockMessages)) { SaveMessages(); }
 
     static int CurrentQuickChatItem = 0;
 

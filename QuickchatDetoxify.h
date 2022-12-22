@@ -19,7 +19,7 @@ const std::vector<std::string> QuickChats = { "$#@%!", "All yours.", "Bumping!",
 class QuickchatDetoxify: public BakkesMod::Plugin::BakkesModPlugin, public SettingsWindowBase {
 	void onLoad() override;
 
-	bool BlockMessages = false;
+	bool BlockMessages = true;
 
 	void JsonFileExists();
 	std::string ReadContent(std::string FileName);
